@@ -499,6 +499,11 @@
                 `;
             }
             
+            // Inicializar los contadores en 0 antes de escuchar Firebase
+            document.getElementById('votos-a').textContent = '0 votos';
+            document.getElementById('votos-b').textContent = '0 votos';
+            document.getElementById('total-votos').textContent = '0';
+            
             // Escuchar cambios en los votos
             escucharVotosPregunta(preguntaActual + 1);
             
@@ -512,12 +517,17 @@
             const preguntaRef = db.ref(`preguntas/pregunta${numeroPregunta}/votos`);
             
             preguntaRef.on('value', (snapshot) => {
-                const votos = snapshot.val() || { A: 0, B: 0 };
-                const totalVotos = votos.A + votos.B;
+                const datos = snapshot.val();
+                // Asegurarse de que siempre tengamos valores numéricos
+                const votosA = datos && datos.A ? datos.A : 0;
+                const votosB = datos && datos.B ? datos.B : 0;
+                const totalVotos = votosA + votosB;
+                
+                console.log(`Votos recibidos: A=${votosA}, B=${votosB}, Total=${totalVotos}`);
                 
                 // Actualizar UI - solo números, sin porcentajes
-                document.getElementById('votos-a').textContent = `${votos.A} votos`;
-                document.getElementById('votos-b').textContent = `${votos.B} votos`;
+                document.getElementById('votos-a').textContent = `${votosA} ${votosA === 1 ? 'voto' : 'votos'}`;
+                document.getElementById('votos-b').textContent = `${votosB} ${votosB === 1 ? 'voto' : 'votos'}`;
                 document.getElementById('total-votos').textContent = totalVotos;
             });
         }
