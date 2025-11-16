@@ -518,14 +518,21 @@
             
             preguntaRef.on('value', (snapshot) => {
                 const datos = snapshot.val();
-                // Asegurarse de que siempre tengamos valores numéricos
-                const votosA = datos && datos.A ? datos.A : 0;
-                const votosB = datos && datos.B ? datos.B : 0;
+                
+                // Manejo seguro de los datos - asegurar que siempre sean números
+                let votosA = 0;
+                let votosB = 0;
+                
+                if (datos) {
+                    votosA = Number(datos.A) || 0;
+                    votosB = Number(datos.B) || 0;
+                }
+                
                 const totalVotos = votosA + votosB;
                 
                 console.log(`Votos recibidos: A=${votosA}, B=${votosB}, Total=${totalVotos}`);
                 
-                // Actualizar UI - solo números, sin porcentajes
+                // Actualizar UI
                 document.getElementById('votos-a').textContent = `${votosA} ${votosA === 1 ? 'voto' : 'votos'}`;
                 document.getElementById('votos-b').textContent = `${votosB} ${votosB === 1 ? 'voto' : 'votos'}`;
                 document.getElementById('total-votos').textContent = totalVotos;
