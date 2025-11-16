@@ -1,0 +1,62 @@
+[
+    {
+        "categoria": "1. Introducción",
+        "pregunta": "¿Cuál es uno de los principales objetivos de la seguridad en bases de datos dentro de un sistema como SQL Server?",
+        "incorrecta1": "Aumentar la velocidad de consultas",
+        "respuesta": "Proteger la información de accesos no autorizados"
+    },
+    {
+        "categoria": "2. Introducción – Importancia",
+        "pregunta": "¿Por qué la seguridad es crítica en sistemas financieros?",
+        "incorrecta1": "Porque se procesa poca información",
+        "respuesta": "Porque manejan datos sensibles de clientes y transacciones"
+    },
+    {
+        "categoria": "3. Fundamentos – Modelo CIA",
+        "pregunta": "¿Qué principio del modelo CIA garantiza que solo usuarios autorizados puedan acceder a los datos?",
+        "incorrecta1": "Integridad",
+        "respuesta": "Confidencialidad"
+    },
+    {
+        "categoria": "4. Fundamentos – Amenazas",
+        "pregunta": "¿Cuál de las siguientes es una amenaza común en bases de datos?",
+        "incorrecta1": "Uso correcto de roles",
+        "respuesta": "SQL Injection"
+    },
+    {
+        "categoria": "5. Control de Accesos",
+        "pregunta": "El principio de mínimo privilegio implica:",
+        "incorrecta1": "Dar todos los permisos a los usuarios nuevos",
+        "respuesta": "Permitir solo los privilegios estrictamente necesarios"
+    },
+    {
+        "categoria": "6. Control de Roles",
+        "pregunta": "¿Qué rol tiene permisos de solo lectura en todas las tablas según el caso práctico?",
+        "incorrecta1": "Rol_Cajero",
+        "respuesta": "Rol_Auditor"
+    },
+    {
+        "categoria": "7. Auditoría y Monitoreo",
+        "pregunta": "¿Qué herramienta permite monitorear eventos con bajo consumo de recursos en SQL Server?",
+        "incorrecta1": "SQL Profiler",
+        "respuesta": "Extended Events"
+    },
+    {
+        "categoria": "8. Auditoría – Triggers",
+        "pregunta": "¿En qué tabla se almacenan los registros generados por los triggers de auditoría?",
+        "incorrecta1": "TRANSACCION",
+        "respuesta": "AUDITORIA_LOGS"
+    },
+    {
+        "categoria": "9. Copias de Seguridad",
+        "pregunta": "¿Qué tipo de copia de seguridad almacena solo los cambios desde el último backup completo?",
+        "incorrecta1": "Completa",
+        "respuesta": "Diferencial"
+    },
+    {
+        "categoria": "10. Resultados y Análisis",
+        "pregunta": "¿Cuál fue una de las conclusiones sobre los roles implementados en el sistema?",
+        "incorrecta1": "Todos los usuarios podían modificar cualquier tabla",
+        "respuesta": "Se logró una correcta segregación de funciones"
+    }
+]
