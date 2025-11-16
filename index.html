@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Votación en Tiempo Real</title>
+<style>
+    body{
+        background: slategray;
+        font-family: calibri;
+        text-align: center;
+        padding: 0;
+        margin: 0;
+        font-size: 120%;
+    }
+    .contenedor{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .btn{
+        width: 200px;
+        padding: 15px;
+        margin: 10px;
+        font-size: 1.2em;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .btn:hover{ transform: scale(1.05); }
+    .opcionA{ background: #87CEEB; } /* Celeste */
+    .opcionB{ background: #FFB6C1; } /* Rosado claro */
+    #resultado{
+        background: white;
+        padding: 20px;
+        margin-top: 20px;
+        width: 60%;
+        max-width: 400px;
+        border-radius: 10px;
+    }
+    #ganador{
+        margin-top: 10px;
+        font-weight: bold;
+        font-size: 1.3em;
+    }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+    <h2>¿Qué sistema gestor de base de datos es mejor?</h2>
+    <button class="btn opcionA" onclick="votar('A')">SQL Server</button>
+    <button class="btn opcionB" onclick="votar('B')">PostgreSQL</button>
+
+    <div id="resultado" style="display:none;">
+        <h3>Resultados:</h3>
+        <p id="votosA"></p>
+        <p id="votosB"></p>
+        <div id="ganador"></div>
+    </div>
+</div>
+
+<script>
+    // Inicializar votos desde localStorage
+    let votos = JSON.parse(localStorage.getItem('votos')) || {A:0, B:0};
+
+    // Verificar si ya votó en esta sesión
+    if(sessionStorage.getItem('yaVoto')) {
+        mostrarResultados();
+    }
+
+    function votar(opcion){
+        if(sessionStorage.getItem('yaVoto')){
+            alert("Ya has votado.");
+            return;
+        }
+
+        // Sumar voto
+        votos[opcion]++;
+        localStorage.setItem('votos', JSON.stringify(votos));
+
+        // Marcar que ya votó
+        sessionStorage.setItem('yaVoto', '1');
+
+        // Mostrar resultados inmediatamente
+        mostrarResultados();
+    }
+
+    function mostrarResultados(){
+        document.getElementById("resultado").style.display = "block";
+        document.getElementById("votosA").innerText = `SQL Server: ${votos.A} votos`;
+        document.getElementById("votosB").innerText = `PostgreSQL: ${votos.B} votos`;
+
+        let ganador;
+        if(votos.A > votos.B) ganador = "¡SQL Server gana!";
+        else if(votos.B > votos.A) ganador = "¡PostgreSQL gana!";
+        else ganador = "¡Empate!";
+
+        document.getElementById("ganador").innerText = ganador;
+    }
+
+    // Actualizar resultados cada 3 segundos en tiempo real
+    setInterval(() => {
+        votos = JSON.parse(localStorage.getItem('votos')) || {A:0, B:0};
+        mostrarResultados();
+    }, 30000);
+</script>
+
+</body>
+</html>
