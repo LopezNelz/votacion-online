@@ -1,163 +1,531 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Votación en Tiempo Real</title>
-<style>
-    body{
-        background: slategray;
-        font-family: calibri;
-        text-align: center;
-        padding: 0;
-        margin: 0;
-        font-size: 120%;
-    }
-    .contenedor{
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-    .btn{
-        width: 200px;
-        padding: 15px;
-        margin: 10px;
-        font-size: 1.2em;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    .btn:hover{ transform: scale(1.05); }
-    .opcionA{ background: #87CEEB; } /* Celeste */
-    .opcionB{ background: #FFB6C1; } /* Rosado claro */
-    #resultado{
-        background: white;
-        padding: 20px;
-        margin-top: 20px;
-        width: 60%;
-        max-width: 400px;
-        border-radius: 10px;
-    }
-    #ganador{
-        margin-top: 10px;
-        font-weight: bold;
-        font-size: 1.3em;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Seguridad en Bases de Datos</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #03092593 0%, #b4b2b0 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            color: white;
+        }
+        .contenedor {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .pantalla {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+        .pantalla-activa {
+            display: block;
+        }
+        .categoria {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .pregunta-texto {
+            font-size: 1.4em;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .opciones-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .opcion {
+            padding: 25px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: 3px solid transparent;
+            color: #333;
+        }
+        .opcionA {
+            background: #90EE90; /* lightgreen */
+        }
+        .opcionB {
+            background: #FFB6C1; /* pink */
+        }
+        .opcion:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .opcion-seleccionada {
+            border-color: #333;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .botones {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-siguiente {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-siguiente:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .btn-siguiente:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .progreso {
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .barra-progreso {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0 30px 0;
+            overflow: hidden;
+        }
+        .progreso-llenado {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+        }
+        .resultado-item {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            text-align: left;
+        }
+        .correcta {
+            border-left-color: #4CAF50;
+            background: #f0fff0;
+        }
+        .incorrecta {
+            border-left-color: #ff6b6b;
+            background: #fff0f0;
+        }
+        .estadisticas {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .estadistica {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            color: #333;
+        }
+        .numero-estadistica {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .votos-tiempo-real {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #333;
+        }
+        .barra-votos {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            margin: 10px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .barra-votos-a {
+            height: 100%;
+            background: #90EE90;
+            transition: width 0.5s ease;
+        }
+        .barra-votos-b {
+            height: 100%;
+            background: #FFB6C1;
+            transition: width 0.5s ease;
+        }
+        .porcentaje-texto {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #333;
+        }
+        .mensaje-final {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+    </style>
 </head>
 <body>
+    <div class="contenedor">
+        <!-- Pantalla de Inicio -->
+        <div id="pantalla-inicio" class="pantalla pantalla-activa">
+            <h1>🧠 Quiz de Seguridad en Bases de Datos</h1>
+            <p>Responde 10 preguntas sobre seguridad en bases de datos</p>
+            <p><strong>2 opciones por pregunta • Resultados en tiempo real con Firebase</strong></p>
+            <button class="btn btn-siguiente" onclick="iniciarQuiz()">Comenzar Quiz</button>
+        </div>
 
-<div class="contenedor">
-    <h2>¿Qué sistema gestor de base de datos es mejor?</h2>
-    <button class="btn opcionA" onclick="votar('A')">SQL Server</button>
-    <button class="btn opcionB" onclick="votar('B')">PostgreSQL</button>
+        <!-- Pantalla de Preguntas -->
+        <div id="pantalla-preguntas" class="pantalla">
+            <div class="progreso">
+                Pregunta <span id="numero-pregunta">1</span> de 10
+            </div>
+            <div class="barra-progreso">
+                <div id="progreso-llenado" class="progreso-llenado" style="width: 10%"></div>
+            </div>
+            
+            <div class="categoria" id="categoria">Categoría</div>
+            <div class="pregunta-texto" id="pregunta-texto">¿Cuál es la pregunta?</div>
+            
+            <div class="opciones-container">
+                <button class="opcion opcionA" onclick="seleccionarOpcion('A')">Opción A</button>
+                <button class="opcion opcionB" onclick="seleccionarOpcion('B')">Opción B</button>
+            </div>
+            
+            <div class="botones">
+                <button class="btn btn-siguiente" id="btn-siguiente" onclick="siguientePregunta()" disabled>Siguiente</button>
+            </div>
+        </div>
 
-    <div id="resultado" style="display:none;">
-        <h3>Resultados:</h3>
-        <p id="votosA"></p>
-        <p id="votosB"></p>
-        <div id="ganador"></div>
+        <!-- Pantalla de Resultados -->
+        <div id="pantalla-resultados" class="pantalla">
+            <h1>📊 Resultados Finales</h1>
+            
+            <div class="estadisticas">
+                <div class="estadistica">
+                    <div class="numero-estadistica" id="puntaje-final">0</div>
+                    <div>Correctas</div>
+                </div>
+                <div class="estadistica">
+                    <div class="numero-estadistica" id="porcentaje-final">0%</div>
+                    <div>Porcentaje</div>
+                </div>
+            </div>
+
+            <div class="mensaje-final">
+                <strong>¡Quiz completado!</strong><br>
+                Gracias por participar. Puedes ver los resultados globales en tiempo real a continuación.
+            </div>
+
+            <h3>Resumen de tus respuestas:</h3>
+            <div id="resumen-respuestas">
+                <!-- Resumen generado dinámicamente -->
+            </div>
+
+            <h3>Resultados Globales en Tiempo Real:</h3>
+            <div id="resultados-globales">
+                <!-- Resultados desde Firebase -->
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script>
-  // ======= CONFIGURACIÓN DE FIREBASE =======
-  // REEMPLAZA ESTOS DATOS CON LOS DE TU PROYECTO FIREBASE
-  const firebaseConfig = {
-    apiKey: "AIzaSyDexample...", // Tu apiKey real
-    authDomain: "votacion-online.firebaseapp.com",
-    databaseURL: "https://votacion-online-default-rtdb.firebaseio.com",
-    projectId: "votacion-online",
-    storageBucket: "votacion-online.appspot.com",
-    messagingSenderId: "123456789", // Tu senderId real
-    appId: "1:123456789:web:abc123..." // Tu appId real
-  };
+    <script>
+        // ======= CONFIGURACIÓN FIREBASE =======
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
 
-  // Inicializar Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-  // ======= VARIABLES =======
-  let votos = {A:0, B:0};
+        // ======= VARIABLES GLOBALES =======
+        let preguntas = [];
+        let preguntaActual = 0;
+        let respuestasUsuario = [];
+        let opcionSeleccionada = null;
+        let quizCompletado = false;
 
-  // ======= VERIFICAR SI YA VOTÓ Y MOSTRAR RESULTADOS =======
-  function inicializarApp() {
-      if(localStorage.getItem('yaVoto')) {
-          mostrarResultados();
-      }
-      
-      // Cargar resultados actuales
-      cargarResultados();
-  }
+        // ======= CARGAR PREGUNTAS =======
+        async function cargarPreguntas() {
+            try {
+                const response = await fetch('basePreguntas.json');
+                const data = await response.json();
+                
+                // Solo cargar preguntas si no están cargadas y el quiz no está completado
+                if (preguntas.length === 0 && !quizCompletado) {
+                    preguntas = data.map((pregunta, index) => {
+                        // Decidir aleatoriamente si la respuesta correcta es A o B
+                        const esCorrectaA = Math.random() > 0.5;
+                        
+                        return {
+                            id: index + 1,
+                            categoria: pregunta.categoria,
+                            texto: pregunta.pregunta,
+                            opcionA: esCorrectaA ? pregunta.respuesta : pregunta.incorrecta1,
+                            opcionB: esCorrectaA ? pregunta.incorrecta1 : pregunta.respuesta,
+                            correcta: esCorrectaA ? 'A' : 'B',
+                            textoOpcionA: esCorrectaA ? pregunta.respuesta : pregunta.incorrecta1,
+                            textoOpcionB: esCorrectaA ? pregunta.incorrecta1 : pregunta.respuesta,
+                            imagen: pregunta.imagen,
+                            object_fit: pregunta.object_fit
+                        };
+                    });
+                    
+                    console.log('Preguntas cargadas:', preguntas);
+                }
+            } catch (error) {
+                console.error('Error cargando preguntas:', error);
+                // Datos de ejemplo en caso de error
+                preguntas = [
+                    {
+                        id: 1,
+                        categoria: "1. Introducción",
+                        texto: "¿Cuál es uno de los principales objetivos de la seguridad en bases de datos?",
+                        opcionA: "Proteger la información de accesos no autorizados",
+                        opcionB: "Aumentar la velocidad de consultas",
+                        correcta: "A",
+                        textoOpcionA: "Proteger la información de accesos no autorizados",
+                        textoOpcionB: "Aumentar la velocidad de consultas"
+                    }
+                ];
+            }
+        }
 
-  // ======= FUNCIONES =======
-  function votar(opcion){
-      if(localStorage.getItem('yaVoto')){
-          alert("Ya has votado.");
-          mostrarResultados();
-          return;
-      }
+        // ======= INICIALIZAR QUIZ =======
+        function iniciarQuiz() {
+            if (quizCompletado) {
+                alert("Ya has completado el quiz. No puedes volver a realizarlo.");
+                return;
+            }
 
-      console.log("Votando por opción:", opcion);
-      
-      // Guardar voto en Firebase
-      const votoRef = db.ref('votos/' + opcion);
-      votoRef.transaction(current => {
-          return (current || 0) + 1;
-      }).then(() => {
-          console.log("Voto registrado correctamente");
-          // Marcar que ya votó
-          localStorage.setItem('yaVoto','1');
-          mostrarResultados();
-      }).catch(error => {
-          console.error("Error al votar:", error);
-          alert("Error al registrar el voto: " + error.message);
-      });
-  }
+            preguntaActual = 0;
+            respuestasUsuario = [];
+            opcionSeleccionada = null;
+            mostrarPantalla('pantalla-preguntas');
+            mostrarPregunta();
+        }
 
-  // ======= CARGAR Y MOSTRAR RESULTADOS =======
-  function cargarResultados() {
-      db.ref('votos').on('value', snapshot => {
-          const datos = snapshot.val();
-          console.log("Datos recibidos de Firebase:", datos);
-          
-          votos = datos || {A:0, B:0};
-          actualizarInterfaz();
-      }, error => {
-          console.error("Error al cargar resultados:", error);
-      });
-  }
+        // ======= MOSTRAR PREGUNTA ACTUAL =======
+        function mostrarPregunta() {
+            if (preguntaActual >= preguntas.length) {
+                finalizarQuiz();
+                return;
+            }
 
-  function mostrarResultados(){
-      document.getElementById("resultado").style.display = "block";
-  }
+            const pregunta = preguntas[preguntaActual];
+            
+            // Actualizar UI
+            document.getElementById('categoria').textContent = pregunta.categoria;
+            document.getElementById('pregunta-texto').textContent = pregunta.texto;
+            document.getElementById('numero-pregunta').textContent = preguntaActual + 1;
+            
+            // Actualizar opciones
+            document.querySelector('.opcionA').textContent = `A) ${pregunta.opcionA}`;
+            document.querySelector('.opcionB').textContent = `B) ${pregunta.opcionB}`;
+            
+            // Actualizar barra de progreso
+            const progreso = ((preguntaActual + 1) / preguntas.length) * 100;
+            document.getElementById('progreso-llenado').style.width = progreso + '%';
+            
+            // Resetear selección y botón
+            document.querySelectorAll('.opcion').forEach(op => {
+                op.classList.remove('opcion-seleccionada');
+            });
+            document.getElementById('btn-siguiente').disabled = true;
+            opcionSeleccionada = null;
+        }
 
-  function actualizarInterfaz() {
-      mostrarResultados();
-      document.getElementById("votosA").innerText = `SQL Server: ${votos.A || 0} votos`;
-      document.getElementById("votosB").innerText = `PostgreSQL: ${votos.B || 0} votos`;
+        // ======= SELECCIONAR OPCIÓN =======
+        function seleccionarOpcion(opcion) {
+            // Remover selección anterior
+            document.querySelectorAll('.opcion').forEach(op => {
+                op.classList.remove('opcion-seleccionada');
+            });
+            
+            // Marcar selección actual
+            document.querySelector(`.opcion${opcion}`).classList.add('opcion-seleccionada');
+            opcionSeleccionada = opcion;
+            
+            // Habilitar botón siguiente
+            document.getElementById('btn-siguiente').disabled = false;
+        }
 
-      let ganador;
-      if((votos.A || 0) > (votos.B || 0)) {
-          ganador = "¡SQL Server gana!";
-      } else if((votos.B || 0) > (votos.A || 0)) {
-          ganador = "¡PostgreSQL gana!";
-      } else {
-          ganador = "¡Empate!";
-      }
-      document.getElementById("ganador").innerText = ganador;
-  }
+        // ======= SIGUIENTE PREGUNTA =======
+        function siguientePregunta() {
+            if (opcionSeleccionada === null) return;
+            
+            // Guardar respuesta
+            const pregunta = preguntas[preguntaActual];
+            respuestasUsuario.push({
+                preguntaId: pregunta.id,
+                preguntaTexto: pregunta.texto,
+                opcionSeleccionada: opcionSeleccionada,
+                textoSeleccionado: opcionSeleccionada === 'A' ? pregunta.textoOpcionA : pregunta.textoOpcionB,
+                correcta: opcionSeleccionada === pregunta.correcta,
+                respuestaCorrecta: pregunta.correcta,
+                textoCorrecto: pregunta.correcta === 'A' ? pregunta.textoOpcionA : pregunta.textoOpcionB
+            });
 
-  // ======= INICIALIZAR LA APLICACIÓN =======
-  document.addEventListener('DOMContentLoaded', inicializarApp);
-</script>
+            // Enviar voto a Firebase
+            enviarVotoFirebase(preguntaActual, opcionSeleccionada);
 
+            // Avanzar a siguiente pregunta
+            preguntaActual++;
+            mostrarPregunta();
+        }
+
+        // ======= ENVIAR VOTO A FIREBASE =======
+        function enviarVotoFirebase(numeroPregunta, opcion) {
+            const preguntaRef = db.ref(`preguntas/pregunta${numeroPregunta + 1}/votos/${opcion}`);
+            preguntaRef.transaction(current => (current || 0) + 1);
+        }
+
+        // ======= FINALIZAR QUIZ =======
+        function finalizarQuiz() {
+            // Marcar quiz como completado
+            quizCompletado = true;
+            localStorage.setItem('quizCompletado', 'true');
+
+            // Calcular resultados
+            const correctas = respuestasUsuario.filter(r => r.correcta).length;
+            const porcentaje = Math.round((correctas / preguntas.length) * 100);
+            
+            document.getElementById('puntaje-final').textContent = `${correctas}/${preguntas.length}`;
+            document.getElementById('porcentaje-final').textContent = `${porcentaje}%`;
+            
+            // Mostrar resumen
+            mostrarResumenRespuestas();
+            
+            // Cargar resultados globales
+            cargarResultadosGlobales();
+            
+            // Mostrar pantalla de resultados
+            mostrarPantalla('pantalla-resultados');
+        }
+
+        // ======= MOSTRAR RESUMEN =======
+        function mostrarResumenRespuestas() {
+            const contenedor = document.getElementById('resumen-respuestas');
+            contenedor.innerHTML = '';
+            
+            respuestasUsuario.forEach((respuesta, index) => {
+                const div = document.createElement('div');
+                div.className = `resultado-item ${respuesta.correcta ? 'correcta' : 'incorrecta'}`;
+                
+                div.innerHTML = `
+                    <strong>Pregunta ${index + 1}:</strong> ${respuesta.preguntaTexto}
+                    <br>Tu respuesta: <strong>${respuesta.opcionSeleccionada}) ${respuesta.textoSeleccionado}</strong>
+                    ${!respuesta.correcta ? `<br>Respuesta correcta: <strong>${respuesta.respuestaCorrecta}) ${respuesta.textoCorrecto}</strong>` : ''}
+                    <br><em>${respuesta.correcta ? '✅ Correcto' : '❌ Incorrecto'}</em>
+                `;
+                
+                contenedor.appendChild(div);
+            });
+        }
+
+        // ======= CARGAR RESULTADOS GLOBALES =======
+        function cargarResultadosGlobales() {
+            const contenedor = document.getElementById('resultados-globales');
+            contenedor.innerHTML = '<p>Cargando resultados globales...</p>';
+            
+            // Escuchar cambios en todas las preguntas
+            db.ref('preguntas').on('value', (snapshot) => {
+                const datos = snapshot.val() || {};
+                let html = '';
+                
+                for (let i = 1; i <= 10; i++) {
+                    const preguntaKey = `pregunta${i}`;
+                    const votos = datos[preguntaKey]?.votos || { A: 0, B: 0 };
+                    const totalVotos = votos.A + votos.B;
+                    const porcentajeA = totalVotos > 0 ? Math.round((votos.A / totalVotos) * 100) : 0;
+                    const porcentajeB = totalVotos > 0 ? Math.round((votos.B / totalVotos) * 100) : 0;
+                    
+                    html += `
+                        <div class="votos-tiempo-real">
+                            <h4>Pregunta ${i}:</h4>
+                            <div class="barra-votos">
+                                <div class="barra-votos-a" style="width: ${porcentajeA}%"></div>
+                                <div class="barra-votos-b" style="width: ${porcentajeB}%"></div>
+                                <div class="porcentaje-texto">A: ${porcentajeA}% | B: ${porcentajeB}%</div>
+                            </div>
+                            <div>Total votos: ${totalVotos}</div>
+                        </div>
+                    `;
+                }
+                
+                contenedor.innerHTML = html;
+            });
+        }
+
+        // ======= FUNCIONES UTILITARIAS =======
+        function mostrarPantalla(nombrePantalla) {
+            document.querySelectorAll('.pantalla').forEach(pantalla => {
+                pantalla.classList.remove('pantalla-activa');
+            });
+            document.getElementById(nombrePantalla).classList.add('pantalla-activa');
+        }
+
+        // ======= INICIALIZAR =======
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si el quiz ya fue completado
+            if (localStorage.getItem('quizCompletado') === 'true') {
+                quizCompletado = true;
+                mostrarPantalla('pantalla-resultados');
+                cargarResultadosGlobales();
+            } else {
+                cargarPreguntas();
+            }
+        });
+    </script>
 </body>
 </html>
