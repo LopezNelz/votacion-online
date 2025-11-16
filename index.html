@@ -136,34 +136,6 @@
             margin: 20px 0;
             color: #333;
         }
-        .barra-votos {
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            margin: 10px 0;
-            overflow: hidden;
-            position: relative;
-        }
-        .barra-votos-a {
-            height: 100%;
-            background: #90EE90;
-            transition: width 0.5s ease;
-            float: left;
-        }
-        .barra-votos-b {
-            height: 100%;
-            background: #FFB6C1;
-            transition: width 0.5s ease;
-            float: left;
-        }
-        .porcentaje-texto {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: bold;
-            color: #333;
-        }
         .estadisticas-votos {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -193,29 +165,28 @@
         .respuesta-correcta {
             background: #d4edda;
             border: 2px solid #28a745;
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
-            margin: 10px 0;
+            margin: 20px 0;
             font-weight: bold;
+            font-size: 1.1em;
         }
         .respuesta-incorrecta {
             background: #f8d7da;
             border: 2px solid #dc3545;
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
-            margin: 10px 0;
+            margin: 20px 0;
             font-weight: bold;
+            font-size: 1.1em;
         }
-        .debug-info {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 10px;
-            margin: 10px 0;
-            font-family: monospace;
-            font-size: 0.9em;
-            color: #333;
-            text-align: left;
+        .mensaje-final {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.2em;
         }
     </style>
 </head>
@@ -227,12 +198,6 @@
             <p>Responde 10 preguntas sobre seguridad en bases de datos</p>
             <p><strong>2 opciones por pregunta • Resultados en tiempo real</strong></p>
             <button class="btn btn-siguiente" onclick="iniciarQuiz()">Comenzar Quiz</button>
-            
-            <!-- Información de debug -->
-            <div class="debug-info" id="debug-info">
-                Estado Firebase: <span id="firebase-status">No conectado</span><br>
-                <small>Si los votos no se actualizan, verifica tu configuración de Firebase</small>
-            </div>
         </div>
 
         <!-- Pantalla de Preguntas -->
@@ -271,37 +236,25 @@
             
             <!-- Mostrar si la respuesta fue correcta o incorrecta -->
             <div id="resultado-usuario" style="display: none;">
-                Tu respuesta: <span id="respuesta-usuario-texto"></span>
+                <!-- Se llena dinámicamente -->
             </div>
             
             <div class="resultados-container">
-                <h3>📊 Resultados en Tiempo Real:</h3>
+                <h3>📊 Votos en Tiempo Real:</h3>
                 
                 <div class="estadisticas-votos">
                     <div class="estadistica-voto estadistica-a">
                         <div>Opción A</div>
                         <div class="numero-votos" id="votos-a">0 votos</div>
-                        <div class="porcentaje" id="porcentaje-a">0%</div>
                     </div>
                     <div class="estadistica-voto estadistica-b">
                         <div>Opción B</div>
                         <div class="numero-votos" id="votos-b">0 votos</div>
-                        <div class="porcentaje" id="porcentaje-b">0%</div>
                     </div>
-                </div>
-                
-                <div class="barra-votos">
-                    <div class="barra-votos-a" id="barra-votos-a" style="width: 50%"></div>
-                    <div class="barra-votos-b" id="barra-votos-b" style="width: 50%"></div>
-                    <div class="porcentaje-texto" id="porcentaje-total">A: 50% | B: 50%</div>
                 </div>
                 
                 <div class="total-votos">
                     Total de votos: <span id="total-votos">0</span>
-                </div>
-
-                <div class="debug-info" id="debug-votos">
-                    Estado de votos: <span id="votos-status">Esperando datos...</span>
                 </div>
             </div>
             
@@ -314,16 +267,21 @@
         <div id="pantalla-resultados-finales" class="pantalla">
             <h1>🎉 Quiz Completado</h1>
             
+            <div class="mensaje-final">
+                <strong>¡Gracias por realizar el quiz!</strong><br>
+                Esperamos que hayas aprendido más sobre seguridad en bases de datos.
+            </div>
+            
             <div class="resultados-container">
                 <h3>Tu puntuación final:</h3>
                 <div class="estadisticas-votos">
                     <div class="estadistica-voto estadistica-a">
-                        <div>Correctas</div>
+                        <div>Respuestas Correctas</div>
                         <div class="numero-votos" id="correctas-final">0</div>
                     </div>
                     <div class="estadistica-voto estadistica-b">
-                        <div>Porcentaje</div>
-                        <div class="numero-votos" id="porcentaje-final">0%</div>
+                        <div>Total Preguntas</div>
+                        <div class="numero-votos" id="total-preguntas">10</div>
                     </div>
                 </div>
             </div>
@@ -340,7 +298,6 @@
 
     <script>
         // ======= CONFIGURACIÓN FIREBASE =======
-        // REEMPLAZA ESTOS DATOS CON TUS CREDENCIALES REALES DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBkL1Y4qXqXqXqXqXqXqXqXqXqXqXqXqXqXq",
             authDomain: "votacion-online.firebaseapp.com",
@@ -364,14 +321,10 @@
             try {
                 firebase.initializeApp(firebaseConfig);
                 db = firebase.database();
-                document.getElementById('firebase-status').textContent = 'Conectado ✓';
-                document.getElementById('firebase-status').style.color = 'green';
                 console.log('Firebase conectado correctamente');
                 return true;
             } catch (error) {
                 console.error('Error inicializando Firebase:', error);
-                document.getElementById('firebase-status').textContent = 'Error: ' + error.message;
-                document.getElementById('firebase-status').style.color = 'red';
                 return false;
             }
         }
@@ -401,7 +354,6 @@
                 }
             } catch (error) {
                 console.error('Error cargando preguntas:', error);
-                // Datos de ejemplo en caso de error
                 preguntas = [
                     {
                         id: 1,
@@ -500,9 +452,6 @@
             // Enviar voto a Firebase
             if (db) {
                 enviarVotoFirebase(preguntaActual, opcionSeleccionada);
-            } else {
-                console.error('Firebase no está disponible');
-                document.getElementById('votos-status').textContent = 'Error: Firebase no conectado';
             }
 
             mostrarResultadosPregunta(esCorrecta);
@@ -510,26 +459,13 @@
 
         // ======= ENVIAR VOTO A FIREBASE =======
         function enviarVotoFirebase(numeroPregunta, opcion) {
-            if (!db) {
-                console.error('Firebase no está inicializado');
-                return;
-            }
+            if (!db) return;
 
             const preguntaId = numeroPregunta + 1;
             const preguntaRef = db.ref(`preguntas/pregunta${preguntaId}/votos/${opcion}`);
             
-            console.log(`Enviando voto a Firebase: /preguntas/pregunta${preguntaId}/votos/${opcion}`);
-            
             preguntaRef.transaction(current => {
-                const nuevoValor = (current || 0) + 1;
-                console.log(`Transacción: ${current || 0} -> ${nuevoValor}`);
-                return nuevoValor;
-            }).then(result => {
-                console.log('Voto registrado exitosamente:', result);
-                document.getElementById('votos-status').textContent = 'Voto registrado ✓';
-            }).catch(error => {
-                console.error('Error registrando voto:', error);
-                document.getElementById('votos-status').textContent = 'Error: ' + error.message;
+                return (current || 0) + 1;
             });
         }
 
@@ -546,14 +482,22 @@
             
             // Mostrar resultado del usuario
             const resultadoUsuario = document.getElementById('resultado-usuario');
-            const respuestaUsuarioTexto = document.getElementById('respuesta-usuario-texto');
-            
             resultadoUsuario.style.display = 'block';
-            resultadoUsuario.className = esCorrecta ? 'respuesta-correcta' : 'respuesta-incorrecta';
             
-            respuestaUsuarioTexto.textContent = esCorrecta ? 
-                `✅ Correcto - "${pregunta.textoCorrecto}"` : 
-                `❌ Incorrecto - La respuesta correcta era: "${pregunta.textoCorrecto}"`;
+            if (esCorrecta) {
+                resultadoUsuario.className = 'respuesta-correcta';
+                resultadoUsuario.innerHTML = `
+                    ✅ <strong>¡Correcto!</strong><br>
+                    Tu respuesta: "${opcionSeleccionada === 'A' ? pregunta.opcionA : pregunta.opcionB}"
+                `;
+            } else {
+                resultadoUsuario.className = 'respuesta-incorrecta';
+                resultadoUsuario.innerHTML = `
+                    ❌ <strong>Incorrecto</strong><br>
+                    Tu respuesta: "${opcionSeleccionada === 'A' ? pregunta.opcionA : pregunta.opcionB}"<br>
+                    Respuesta correcta: "${pregunta.textoCorrecto}"
+                `;
+            }
             
             // Escuchar cambios en los votos
             escucharVotosPregunta(preguntaActual + 1);
@@ -563,37 +507,18 @@
 
         // ======= ESCUCHAR VOTOS EN TIEMPO REAL =======
         function escucharVotosPregunta(numeroPregunta) {
-            if (!db) {
-                console.error('No se puede escuchar votos: Firebase no conectado');
-                document.getElementById('votos-status').textContent = 'Error: No se puede conectar a Firebase';
-                return;
-            }
+            if (!db) return;
 
             const preguntaRef = db.ref(`preguntas/pregunta${numeroPregunta}/votos`);
-            console.log(`Escuchando votos en: /preguntas/pregunta${numeroPregunta}/votos`);
             
             preguntaRef.on('value', (snapshot) => {
                 const votos = snapshot.val() || { A: 0, B: 0 };
                 const totalVotos = votos.A + votos.B;
-                const porcentajeA = totalVotos > 0 ? Math.round((votos.A / totalVotos) * 100) : 0;
-                const porcentajeB = totalVotos > 0 ? Math.round((votos.B / totalVotos) * 100) : 0;
                 
-                console.log(`Votos recibidos: A=${votos.A}, B=${votos.B}, Total=${totalVotos}`);
-                
-                // Actualizar UI
+                // Actualizar UI - solo números, sin porcentajes
                 document.getElementById('votos-a').textContent = `${votos.A} votos`;
                 document.getElementById('votos-b').textContent = `${votos.B} votos`;
-                document.getElementById('porcentaje-a').textContent = `${porcentajeA}%`;
-                document.getElementById('porcentaje-b').textContent = `${porcentajeB}%`;
-                document.getElementById('barra-votos-a').style.width = `${porcentajeA}%`;
-                document.getElementById('barra-votos-b').style.width = `${porcentajeB}%`;
-                document.getElementById('porcentaje-total').textContent = `A: ${porcentajeA}% | B: ${porcentajeB}%`;
                 document.getElementById('total-votos').textContent = totalVotos;
-                
-                document.getElementById('votos-status').textContent = `Datos actualizados - A:${votos.A} B:${votos.B}`;
-            }, (error) => {
-                console.error('Error escuchando votos:', error);
-                document.getElementById('votos-status').textContent = 'Error escuchando votos: ' + error.message;
             });
         }
 
@@ -602,7 +527,6 @@
             // Dejar de escuchar los votos de la pregunta anterior
             if (db) {
                 db.ref(`preguntas/pregunta${preguntaActual + 1}/votos`).off();
-                console.log(`Dejando de escuchar: pregunta${preguntaActual + 1}`);
             }
             
             preguntaActual++;
@@ -621,10 +545,9 @@
             localStorage.setItem('quizCompletado', 'true');
 
             const correctas = respuestasUsuario.filter(r => r.correcta).length;
-            const porcentaje = Math.round((correctas / preguntas.length) * 100);
             
-            document.getElementById('correctas-final').textContent = `${correctas}/${preguntas.length}`;
-            document.getElementById('porcentaje-final').textContent = `${porcentaje}%`;
+            document.getElementById('correctas-final').textContent = `${correctas}`;
+            document.getElementById('total-preguntas').textContent = `${preguntas.length}`;
             
             mostrarPantalla('pantalla-resultados-finales');
         }
@@ -639,18 +562,13 @@
 
         // ======= INICIALIZAR =======
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar Firebase primero
-            const firebaseConectado = inicializarFirebase();
+            inicializarFirebase();
             
             if (localStorage.getItem('quizCompletado') === 'true') {
                 quizCompletado = true;
                 mostrarPantalla('pantalla-resultados-finales');
             } else {
                 cargarPreguntas();
-            }
-            
-            if (!firebaseConectado) {
-                console.warn('Firebase no está conectado. Los votos no se guardarán.');
             }
         });
     </script>
