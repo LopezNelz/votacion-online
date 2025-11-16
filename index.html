@@ -69,60 +69,94 @@
 
 <script>
   // ======= CONFIGURACIÓN DE FIREBASE =======
+  // REEMPLAZA ESTOS DATOS CON LOS DE TU PROYECTO FIREBASE
   const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_PROYECTO.firebaseapp.com",
-    databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
-    projectId: "TU_PROYECTO",
-    storageBucket: "TU_PROYECTO.appspot.com",
-    messagingSenderId: "TU_SENDER_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyDexample...", // Tu apiKey real
+    authDomain: "votacion-online.firebaseapp.com",
+    databaseURL: "https://votacion-online-default-rtdb.firebaseio.com",
+    projectId: "votacion-online",
+    storageBucket: "votacion-online.appspot.com",
+    messagingSenderId: "123456789", // Tu senderId real
+    appId: "1:123456789:web:abc123..." // Tu appId real
   };
 
+  // Inicializar Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
   // ======= VARIABLES =======
   let votos = {A:0, B:0};
 
-  // ======= VERIFICAR SI YA VOTÓ =======
-  if(localStorage.getItem('yaVoto')) {
-      mostrarResultados();
+  // ======= VERIFICAR SI YA VOTÓ Y MOSTRAR RESULTADOS =======
+  function inicializarApp() {
+      if(localStorage.getItem('yaVoto')) {
+          mostrarResultados();
+      }
+      
+      // Cargar resultados actuales
+      cargarResultados();
   }
 
   // ======= FUNCIONES =======
   function votar(opcion){
       if(localStorage.getItem('yaVoto')){
           alert("Ya has votado.");
+          mostrarResultados();
           return;
       }
 
+      console.log("Votando por opción:", opcion);
+      
       // Guardar voto en Firebase
       const votoRef = db.ref('votos/' + opcion);
-      votoRef.transaction(current => (current || 0) + 1);
-
-      // Marcar que ya votó
-      localStorage.setItem('yaVoto','1');
+      votoRef.transaction(current => {
+          return (current || 0) + 1;
+      }).then(() => {
+          console.log("Voto registrado correctamente");
+          // Marcar que ya votó
+          localStorage.setItem('yaVoto','1');
+          mostrarResultados();
+      }).catch(error => {
+          console.error("Error al votar:", error);
+          alert("Error al registrar el voto: " + error.message);
+      });
   }
 
-  // ======= MOSTRAR RESULTADOS =======
+  // ======= CARGAR Y MOSTRAR RESULTADOS =======
+  function cargarResultados() {
+      db.ref('votos').on('value', snapshot => {
+          const datos = snapshot.val();
+          console.log("Datos recibidos de Firebase:", datos);
+          
+          votos = datos || {A:0, B:0};
+          actualizarInterfaz();
+      }, error => {
+          console.error("Error al cargar resultados:", error);
+      });
+  }
+
   function mostrarResultados(){
       document.getElementById("resultado").style.display = "block";
   }
 
-  // ======= ESCUCHAR CAMBIOS EN TIEMPO REAL =======
-  db.ref('votos').on('value', snapshot => {
-      votos = snapshot.val() || {A:0, B:0};
+  function actualizarInterfaz() {
       mostrarResultados();
       document.getElementById("votosA").innerText = `SQL Server: ${votos.A || 0} votos`;
       document.getElementById("votosB").innerText = `PostgreSQL: ${votos.B || 0} votos`;
 
       let ganador;
-      if((votos.A || 0) > (votos.B || 0)) ganador = "¡SQL Server gana!";
-      else if((votos.B || 0) > (votos.A || 0)) ganador = "¡PostgreSQL gana!";
-      else ganador = "¡Empate!";
+      if((votos.A || 0) > (votos.B || 0)) {
+          ganador = "¡SQL Server gana!";
+      } else if((votos.B || 0) > (votos.A || 0)) {
+          ganador = "¡PostgreSQL gana!";
+      } else {
+          ganador = "¡Empate!";
+      }
       document.getElementById("ganador").innerText = ganador;
-  });
+  }
+
+  // ======= INICIALIZAR LA APLICACIÓN =======
+  document.addEventListener('DOMContentLoaded', inicializarApp);
 </script>
 
 </body>
