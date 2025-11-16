@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz de Seguridad en Bases de Datos</title>
     <style>
+        /* Tus estilos CSS anteriores se mantienen igual */
         body {
             background: linear-gradient(135deg, #03092593 0%, #b4b2b0 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -198,6 +199,25 @@
             margin: 10px 0;
             font-weight: bold;
         }
+        .respuesta-incorrecta {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #333;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -208,6 +228,12 @@
             <p>Responde 10 preguntas sobre seguridad en bases de datos</p>
             <p><strong>2 opciones por pregunta • Resultados en tiempo real</strong></p>
             <button class="btn btn-siguiente" onclick="iniciarQuiz()">Comenzar Quiz</button>
+            
+            <!-- Información de debug -->
+            <div class="debug-info" id="debug-info">
+                Estado Firebase: <span id="firebase-status">No conectado</span><br>
+                <small>Si los votos no se actualizan, verifica tu configuración de Firebase</small>
+            </div>
         </div>
 
         <!-- Pantalla de Preguntas -->
@@ -245,7 +271,7 @@
             <div class="pregunta-texto" id="pregunta-texto-resultados">¿Cuál es la pregunta?</div>
             
             <!-- Mostrar si la respuesta fue correcta o incorrecta -->
-            <div id="resultado-usuario" class="respuesta-correcta" style="display: none;">
+            <div id="resultado-usuario" style="display: none;">
                 Tu respuesta: <span id="respuesta-usuario-texto"></span>
             </div>
             
@@ -273,6 +299,10 @@
                 
                 <div class="total-votos">
                     Total de votos: <span id="total-votos">0</span>
+                </div>
+
+                <div class="debug-info" id="debug-votos">
+                    Estado de votos: <span id="votos-status">Esperando datos...</span>
                 </div>
             </div>
             
@@ -311,32 +341,41 @@
 
     <script>
         // ======= CONFIGURACIÓN FIREBASE =======
+        // REEMPLAZA ESTOS DATOS CON TUS CREDENCIALES REALES DE FIREBASE
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_PROYECTO.firebaseapp.com",
-            databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
-            projectId: "TU_PROYECTO",
-            storageBucket: "TU_PROYECTO.appspot.com",
-            messagingSenderId: "TU_SENDER_ID",
-            appId: "TU_APP_ID"
+            apiKey: "AIzaSyBkL1Y4qXqXqXqXqXqXqXqXqXqXqXqXqXqXq",
+            authDomain: "votacion-online.firebaseapp.com",
+            databaseURL: "https://votacion-online-default-rtdb.firebaseio.com",
+            projectId: "votacion-online",
+            storageBucket: "votacion-online.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
         };
 
-        // Inicializar Firebase
-        let db;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            console.log('Firebase conectado correctamente');
-        } catch (error) {
-            console.error('Error inicializando Firebase:', error);
-        }
-
         // ======= VARIABLES GLOBALES =======
+        let db;
         let preguntas = [];
         let preguntaActual = 0;
         let respuestasUsuario = [];
         let opcionSeleccionada = null;
         let quizCompletado = false;
+
+        // ======= INICIALIZAR FIREBASE =======
+        function inicializarFirebase() {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                document.getElementById('firebase-status').textContent = 'Conectado ✓';
+                document.getElementById('firebase-status').style.color = 'green';
+                console.log('Firebase conectado correctamente');
+                return true;
+            } catch (error) {
+                console.error('Error inicializando Firebase:', error);
+                document.getElementById('firebase-status').textContent = 'Error: ' + error.message;
+                document.getElementById('firebase-status').style.color = 'red';
+                return false;
+            }
+        }
 
         // ======= CARGAR PREGUNTAS DESDE JSON =======
         async function cargarPreguntas() {
@@ -345,9 +384,7 @@
                 const data = await response.json();
                 
                 if (preguntas.length === 0 && !quizCompletado) {
-                    // Procesar las preguntas del JSON
                     preguntas = data.map((pregunta, index) => {
-                        // Decidir aleatoriamente si la respuesta correcta es A o B
                         const esCorrectaA = Math.random() > 0.5;
                         
                         return {
@@ -361,11 +398,11 @@
                         };
                     });
                     
-                    console.log('Preguntas cargadas desde JSON:', preguntas);
+                    console.log('Preguntas cargadas:', preguntas);
                 }
             } catch (error) {
-                console.error('Error cargando preguntas desde JSON:', error);
-                // En caso de error, usar datos de ejemplo
+                console.error('Error cargando preguntas:', error);
+                // Datos de ejemplo en caso de error
                 preguntas = [
                     {
                         id: 1,
@@ -413,20 +450,16 @@
 
             const pregunta = preguntas[preguntaActual];
             
-            // Actualizar UI
             document.getElementById('categoria').textContent = pregunta.categoria;
             document.getElementById('pregunta-texto').textContent = pregunta.texto;
             document.getElementById('numero-pregunta').textContent = preguntaActual + 1;
             
-            // Actualizar opciones
             document.querySelector('.opcionA').textContent = `A) ${pregunta.opcionA}`;
             document.querySelector('.opcionB').textContent = `B) ${pregunta.opcionB}`;
             
-            // Actualizar barra de progreso
             const progreso = ((preguntaActual + 1) / preguntas.length) * 100;
             document.getElementById('progreso-llenado').style.width = progreso + '%';
             
-            // Resetear selección y botón
             document.querySelectorAll('.opcion').forEach(op => {
                 op.classList.remove('opcion-seleccionada');
             });
@@ -436,16 +469,13 @@
 
         // ======= SELECCIONAR OPCIÓN =======
         function seleccionarOpcion(opcion) {
-            // Remover selección anterior
             document.querySelectorAll('.opcion').forEach(op => {
                 op.classList.remove('opcion-seleccionada');
             });
             
-            // Marcar selección actual
             document.querySelector(`.opcion${opcion}`).classList.add('opcion-seleccionada');
             opcionSeleccionada = opcion;
             
-            // Habilitar botón votar
             document.getElementById('btn-votar').disabled = false;
         }
 
@@ -453,7 +483,6 @@
         function votar() {
             if (opcionSeleccionada === null) return;
             
-            // Guardar respuesta del usuario
             const pregunta = preguntas[preguntaActual];
             const esCorrecta = opcionSeleccionada === pregunta.correcta;
             
@@ -467,10 +496,16 @@
                 textoCorrecto: pregunta.textoCorrecto
             });
 
+            console.log(`Votando: Pregunta ${preguntaActual + 1}, Opción ${opcionSeleccionada}`);
+            
             // Enviar voto a Firebase
-            enviarVotoFirebase(preguntaActual, opcionSeleccionada);
+            if (db) {
+                enviarVotoFirebase(preguntaActual, opcionSeleccionada);
+            } else {
+                console.error('Firebase no está disponible');
+                document.getElementById('votos-status').textContent = 'Error: Firebase no conectado';
+            }
 
-            // Mostrar pantalla de resultados
             mostrarResultadosPregunta(esCorrecta);
         }
 
@@ -484,12 +519,18 @@
             const preguntaId = numeroPregunta + 1;
             const preguntaRef = db.ref(`preguntas/pregunta${preguntaId}/votos/${opcion}`);
             
+            console.log(`Enviando voto a Firebase: /preguntas/pregunta${preguntaId}/votos/${opcion}`);
+            
             preguntaRef.transaction(current => {
-                return (current || 0) + 1;
+                const nuevoValor = (current || 0) + 1;
+                console.log(`Transacción: ${current || 0} -> ${nuevoValor}`);
+                return nuevoValor;
             }).then(result => {
-                console.log(`Voto registrado: Pregunta ${preguntaId}, Opción ${opcion}`);
+                console.log('Voto registrado exitosamente:', result);
+                document.getElementById('votos-status').textContent = 'Voto registrado ✓';
             }).catch(error => {
                 console.error('Error registrando voto:', error);
+                document.getElementById('votos-status').textContent = 'Error: ' + error.message;
             });
         }
 
@@ -497,12 +538,10 @@
         function mostrarResultadosPregunta(esCorrecta) {
             const pregunta = preguntas[preguntaActual];
             
-            // Actualizar UI de resultados
             document.getElementById('categoria-resultados').textContent = pregunta.categoria;
             document.getElementById('pregunta-texto-resultados').textContent = pregunta.texto;
             document.getElementById('numero-pregunta-resultados').textContent = preguntaActual + 1;
             
-            // Actualizar barra de progreso
             const progreso = ((preguntaActual + 1) / preguntas.length) * 100;
             document.getElementById('progreso-llenado-resultados').style.width = progreso + '%';
             
@@ -511,31 +550,36 @@
             const respuestaUsuarioTexto = document.getElementById('respuesta-usuario-texto');
             
             resultadoUsuario.style.display = 'block';
-            resultadoUsuario.style.background = esCorrecta ? '#d4edda' : '#f8d7da';
-            resultadoUsuario.style.borderColor = esCorrecta ? '#28a745' : '#dc3545';
+            resultadoUsuario.className = esCorrecta ? 'respuesta-correcta' : 'respuesta-incorrecta';
             
             respuestaUsuarioTexto.textContent = esCorrecta ? 
                 `✅ Correcto - "${pregunta.textoCorrecto}"` : 
                 `❌ Incorrecto - La respuesta correcta era: "${pregunta.textoCorrecto}"`;
             
-            // Escuchar cambios en los votos de esta pregunta
+            // Escuchar cambios en los votos
             escucharVotosPregunta(preguntaActual + 1);
             
-            // Mostrar pantalla de resultados
             mostrarPantalla('pantalla-resultados-pregunta');
         }
 
         // ======= ESCUCHAR VOTOS EN TIEMPO REAL =======
         function escucharVotosPregunta(numeroPregunta) {
-            if (!db) return;
+            if (!db) {
+                console.error('No se puede escuchar votos: Firebase no conectado');
+                document.getElementById('votos-status').textContent = 'Error: No se puede conectar a Firebase';
+                return;
+            }
 
             const preguntaRef = db.ref(`preguntas/pregunta${numeroPregunta}/votos`);
+            console.log(`Escuchando votos en: /preguntas/pregunta${numeroPregunta}/votos`);
             
             preguntaRef.on('value', (snapshot) => {
                 const votos = snapshot.val() || { A: 0, B: 0 };
                 const totalVotos = votos.A + votos.B;
                 const porcentajeA = totalVotos > 0 ? Math.round((votos.A / totalVotos) * 100) : 0;
                 const porcentajeB = totalVotos > 0 ? Math.round((votos.B / totalVotos) * 100) : 0;
+                
+                console.log(`Votos recibidos: A=${votos.A}, B=${votos.B}, Total=${totalVotos}`);
                 
                 // Actualizar UI
                 document.getElementById('votos-a').textContent = `${votos.A} votos`;
@@ -546,6 +590,11 @@
                 document.getElementById('barra-votos-b').style.width = `${porcentajeB}%`;
                 document.getElementById('porcentaje-total').textContent = `A: ${porcentajeA}% | B: ${porcentajeB}%`;
                 document.getElementById('total-votos').textContent = totalVotos;
+                
+                document.getElementById('votos-status').textContent = `Datos actualizados - A:${votos.A} B:${votos.B}`;
+            }, (error) => {
+                console.error('Error escuchando votos:', error);
+                document.getElementById('votos-status').textContent = 'Error escuchando votos: ' + error.message;
             });
         }
 
@@ -554,9 +603,9 @@
             // Dejar de escuchar los votos de la pregunta anterior
             if (db) {
                 db.ref(`preguntas/pregunta${preguntaActual + 1}/votos`).off();
+                console.log(`Dejando de escuchar: pregunta${preguntaActual + 1}`);
             }
             
-            // Avanzar a siguiente pregunta
             preguntaActual++;
             
             if (preguntaActual < preguntas.length) {
@@ -572,7 +621,6 @@
             quizCompletado = true;
             localStorage.setItem('quizCompletado', 'true');
 
-            // Calcular resultados finales
             const correctas = respuestasUsuario.filter(r => r.correcta).length;
             const porcentaje = Math.round((correctas / preguntas.length) * 100);
             
@@ -592,11 +640,18 @@
 
         // ======= INICIALIZAR =======
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar Firebase primero
+            const firebaseConectado = inicializarFirebase();
+            
             if (localStorage.getItem('quizCompletado') === 'true') {
                 quizCompletado = true;
                 mostrarPantalla('pantalla-resultados-finales');
             } else {
                 cargarPreguntas();
+            }
+            
+            if (!firebaseConectado) {
+                console.warn('Firebase no está conectado. Los votos no se guardarán.');
             }
         });
     </script>
