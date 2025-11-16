@@ -203,6 +203,17 @@
             color: #333;
             font-size: 1.1em;
         }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #333;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -213,6 +224,11 @@
             <p>Responde 10 preguntas sobre seguridad en bases de datos</p>
             <p><strong>2 opciones por pregunta • Resultados en tiempo real con Firebase</strong></p>
             <button class="btn btn-siguiente" onclick="iniciarQuiz()">Comenzar Quiz</button>
+            
+            <!-- Información de debug -->
+            <div class="debug-info" id="debug-info">
+                Estado Firebase: <span id="firebase-status">No conectado</span>
+            </div>
         </div>
 
         <!-- Pantalla de Preguntas -->
@@ -276,17 +292,28 @@
     <script>
         // ======= CONFIGURACIÓN FIREBASE =======
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_PROYECTO.firebaseapp.com",
-            databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
-            projectId: "TU_PROYECTO",
-            storageBucket: "TU_PROYECTO.appspot.com",
-            messagingSenderId: "TU_SENDER_ID",
-            appId: "TU_APP_ID"
+            // Reemplaza con tu configuración real de Firebase
+            apiKey: "AIzaSyBkL1Y4qXqXqXqXqXqXqXqXqXqXqXqXqXqXq",
+            authDomain: "votacion-online.firebaseapp.com",
+            databaseURL: "https://votacion-online-default-rtdb.firebaseio.com",
+            projectId: "votacion-online",
+            storageBucket: "votacion-online.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // Inicializar Firebase
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            document.getElementById('firebase-status').textContent = 'Conectado';
+            document.getElementById('firebase-status').style.color = 'green';
+        } catch (error) {
+            console.error('Error inicializando Firebase:', error);
+            document.getElementById('firebase-status').textContent = 'Error: ' + error.message;
+            document.getElementById('firebase-status').style.color = 'red';
+        }
 
         // ======= VARIABLES GLOBALES =======
         let preguntas = [];
@@ -298,35 +325,8 @@
         // ======= CARGAR PREGUNTAS =======
         async function cargarPreguntas() {
             try {
-                const response = await fetch('basePreguntas.json');
-                const data = await response.json();
-                
-                // Solo cargar preguntas si no están cargadas y el quiz no está completado
-                if (preguntas.length === 0 && !quizCompletado) {
-                    preguntas = data.map((pregunta, index) => {
-                        // Decidir aleatoriamente si la respuesta correcta es A o B
-                        const esCorrectaA = Math.random() > 0.5;
-                        
-                        return {
-                            id: index + 1,
-                            categoria: pregunta.categoria,
-                            texto: pregunta.pregunta,
-                            opcionA: esCorrectaA ? pregunta.respuesta : pregunta.incorrecta1,
-                            opcionB: esCorrectaA ? pregunta.incorrecta1 : pregunta.respuesta,
-                            correcta: esCorrectaA ? 'A' : 'B',
-                            textoOpcionA: esCorrectaA ? pregunta.respuesta : pregunta.incorrecta1,
-                            textoOpcionB: esCorrectaA ? pregunta.incorrecta1 : pregunta.respuesta,
-                            imagen: pregunta.imagen,
-                            object_fit: pregunta.object_fit
-                        };
-                    });
-                    
-                    console.log('Preguntas cargadas:', preguntas);
-                }
-            } catch (error) {
-                console.error('Error cargando preguntas:', error);
-                // Datos de ejemplo en caso de error
-                preguntas = [
+                // Datos de ejemplo integrados (puedes reemplazar con tu JSON)
+                const preguntasEjemplo = [
                     {
                         id: 1,
                         categoria: "1. Introducción",
@@ -336,8 +336,106 @@
                         correcta: "A",
                         textoOpcionA: "Proteger la información de accesos no autorizados",
                         textoOpcionB: "Aumentar la velocidad de consultas"
+                    },
+                    {
+                        id: 2,
+                        categoria: "1. Introducción", 
+                        texto: "¿Qué principio de seguridad se refiere a garantizar que la información esté disponible cuando se necesita?",
+                        opcionA: "Confidencialidad",
+                        opcionB: "Disponibilidad",
+                        correcta: "B",
+                        textoOpcionA: "Confidencialidad",
+                        textoOpcionB: "Disponibilidad"
+                    },
+                    {
+                        id: 3,
+                        categoria: "2. Autenticación",
+                        texto: "¿Cuál es el método de autenticación más seguro?",
+                        opcionA: "Contraseñas simples",
+                        opcionB: "Autenticación multifactor",
+                        correcta: "B",
+                        textoOpcionA: "Contraseñas simples",
+                        textoOpcionB: "Autenticación multifactor"
+                    },
+                    {
+                        id: 4,
+                        categoria: "2. Autenticación",
+                        texto: "¿Qué tipo de ataque busca adivinar contraseñas probando combinaciones?",
+                        opcionA: "Ataque de fuerza bruta",
+                        opcionB: "Phishing",
+                        correcta: "A",
+                        textoOpcionA: "Ataque de fuerza bruta",
+                        textoOpcionB: "Phishing"
+                    },
+                    {
+                        id: 5,
+                        categoria: "3. Autorización",
+                        texto: "¿Qué principio de seguridad limita los permisos al mínimo necesario?",
+                        opcionA: "Principio de privilegio mínimo",
+                        opcionB: "Seguridad por oscuridad",
+                        correcta: "A",
+                        textoOpcionA: "Principio de privilegio mínimo",
+                        textoOpcionB: "Seguridad por oscuridad"
+                    },
+                    {
+                        id: 6,
+                        categoria: "3. Autorización",
+                        texto: "¿Qué tipo de usuario tiene todos los permisos en una base de datos?",
+                        opcionA: "Usuario regular",
+                        opcionB: "Administrador (DBA)",
+                        correcta: "B",
+                        textoOpcionA: "Usuario regular",
+                        textoOpcionB: "Administrador (DBA)"
+                    },
+                    {
+                        id: 7,
+                        categoria: "4. Cifrado",
+                        texto: "¿Qué tipo de cifrado usa la misma clave para cifrar y descifrar?",
+                        opcionA: "Cifrado simétrico",
+                        opcionB: "Cifrado asimétrico",
+                        correcta: "A",
+                        textoOpcionA: "Cifrado simétrico",
+                        textoOpcionB: "Cifrado asimétrico"
+                    },
+                    {
+                        id: 8,
+                        categoria: "4. Cifrado",
+                        texto: "¿Qué protege el cifrado de datos en reposo?",
+                        opcionA: "Datos almacenados en discos",
+                        opcionB: "Datos en tránsito por la red",
+                        correcta: "A",
+                        textoOpcionA: "Datos almacenados en discos",
+                        textoOpcionB: "Datos en tránsito por la red"
+                    },
+                    {
+                        id: 9,
+                        categoria: "5. Auditoría",
+                        texto: "¿Qué registra la auditoría de bases de datos?",
+                        opcionA: "Solo los errores del sistema",
+                        opcionB: "Todas las actividades importantes",
+                        correcta: "B",
+                        textoOpcionA: "Solo los errores del sistema",
+                        textoOpcionB: "Todas las actividades importantes"
+                    },
+                    {
+                        id: 10,
+                        categoria: "5. Auditoría",
+                        texto: "¿Qué ayuda a detectar la auditoría regular?",
+                        opcionA: "Vulnerabilidades y accesos no autorizados",
+                        opcionB: "Solo el rendimiento de consultas",
+                        correcta: "A",
+                        textoOpcionA: "Vulnerabilidades y accesos no autorizados",
+                        textoOpcionB: "Solo el rendimiento de consultas"
                     }
                 ];
+
+                // Solo cargar preguntas si no están cargadas y el quiz no está completado
+                if (preguntas.length === 0 && !quizCompletado) {
+                    preguntas = preguntasEjemplo;
+                    console.log('Preguntas cargadas:', preguntas);
+                }
+            } catch (error) {
+                console.error('Error cargando preguntas:', error);
             }
         }
 
@@ -426,8 +524,23 @@
 
         // ======= ENVIAR VOTO A FIREBASE =======
         function enviarVotoFirebase(numeroPregunta, opcion) {
-            const preguntaRef = db.ref(`preguntas/pregunta${numeroPregunta + 1}/votos/${opcion}`);
-            preguntaRef.transaction(current => (current || 0) + 1);
+            if (!db) {
+                console.error('Firebase no está inicializado');
+                return;
+            }
+
+            const preguntaId = numeroPregunta + 1;
+            const preguntaRef = db.ref(`preguntas/pregunta${preguntaId}/votos/${opcion}`);
+            
+            console.log(`Enviando voto: Pregunta ${preguntaId}, Opción ${opcion}`);
+            
+            preguntaRef.transaction(current => {
+                return (current || 0) + 1;
+            }).then(result => {
+                console.log('Voto registrado exitosamente:', result);
+            }).catch(error => {
+                console.error('Error registrando voto:', error);
+            });
         }
 
         // ======= FINALIZAR QUIZ =======
@@ -478,6 +591,11 @@
             const contenedor = document.getElementById('resultados-globales');
             contenedor.innerHTML = '<p>Cargando resultados globales...</p>';
             
+            if (!db) {
+                contenedor.innerHTML = '<p>Error: Firebase no está disponible</p>';
+                return;
+            }
+            
             // Escuchar cambios en todas las preguntas
             db.ref('preguntas').on('value', (snapshot) => {
                 const datos = snapshot.val() || {};
@@ -504,6 +622,9 @@
                 }
                 
                 contenedor.innerHTML = html;
+            }, (error) => {
+                console.error('Error cargando resultados globales:', error);
+                contenedor.innerHTML = '<p>Error cargando resultados: ' + error.message + '</p>';
             });
         }
 
