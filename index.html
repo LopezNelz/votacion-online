@@ -188,21 +188,129 @@
             margin: 20px 0;
             font-size: 1.2em;
         }
-        .logo {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 250px;
-            height: 160px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        
+        /* ======= LOGO RESPONSIVO ======= */
+        .logo-container {
+            position: fixed;
+            top: 10px;
+            left: 10px;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo {
+            width: auto;
+            height: auto;
+            max-width: 150px;
+            max-height: 80px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            object-fit: contain;
+        }
+        
+        /* Estilos responsivos para diferentes tamaños de pantalla */
+        @media (max-width: 768px) {
+            .logo-container {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+                justify-content: center;
+                width: 100%;
+            }
+            
+            .logo {
+                max-width: 120px;
+                max-height: 60px;
+            }
+            
+            .contenedor {
+                padding: 15px;
+            }
+            
+            .pantalla {
+                padding: 20px;
+            }
+            
+            .pregunta-texto {
+                font-size: 1.2em;
+            }
+            
+            .opciones-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .opcion {
+                padding: 20px 15px;
+                font-size: 1.1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                max-width: 100px;
+                max-height: 50px;
+            }
+            
+            .contenedor {
+                padding: 10px;
+            }
+            
+            .pantalla {
+                padding: 15px;
+            }
+            
+            .pregunta-texto {
+                font-size: 1.1em;
+                margin-bottom: 20px;
+            }
+            
+            .opcion {
+                padding: 15px 10px;
+                font-size: 1em;
+            }
+            
+            .categoria {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+        
+        /* Para pantallas muy pequeñas (móviles en orientación vertical) */
+        @media (max-width: 360px) {
+            .logo {
+                max-width: 80px;
+                max-height: 40px;
+            }
+            
+            .pregunta-texto {
+                font-size: 1em;
+            }
+        }
+        
+        /* Para pantallas grandes */
+        @media (min-width: 1200px) {
+            .logo {
+                max-width: 200px;
+                max-height: 100px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Logo en la parte superior izquierda -->
-    <img src="./logo.jpg" alt="Logo" class="logo">
+    <!-- Logo responsivo -->
+    <div class="logo-container">
+        <img src="https://raw.githubusercontent.com/LopezNelz/votacion-online/main/logo.jpg" alt="Logo" class="logo">
+    </div>
 
     <div class="contenedor">
         <!-- Pantalla de Inicio -->
@@ -604,10 +712,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
