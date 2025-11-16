@@ -63,50 +63,66 @@
     </div>
 </div>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
-    // Inicializar votos desde localStorage
-    let votos = JSON.parse(localStorage.getItem('votos')) || {A:0, B:0};
+  // ======= CONFIGURACIÓN DE FIREBASE =======
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_PROYECTO.firebaseapp.com",
+    databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+    projectId: "TU_PROYECTO",
+    storageBucket: "TU_PROYECTO.appspot.com",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+  };
 
-    // Verificar si ya votó en esta sesión
-    if(sessionStorage.getItem('yaVoto')) {
-        mostrarResultados();
-    }
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    function votar(opcion){
-        if(sessionStorage.getItem('yaVoto')){
-            alert("Ya has votado.");
-            return;
-        }
+  // ======= VARIABLES =======
+  let votos = {A:0, B:0};
 
-        // Sumar voto
-        votos[opcion]++;
-        localStorage.setItem('votos', JSON.stringify(votos));
+  // ======= VERIFICAR SI YA VOTÓ =======
+  if(localStorage.getItem('yaVoto')) {
+      mostrarResultados();
+  }
 
-        // Marcar que ya votó
-        sessionStorage.setItem('yaVoto', '1');
+  // ======= FUNCIONES =======
+  function votar(opcion){
+      if(localStorage.getItem('yaVoto')){
+          alert("Ya has votado.");
+          return;
+      }
 
-        // Mostrar resultados inmediatamente
-        mostrarResultados();
-    }
+      // Guardar voto en Firebase
+      const votoRef = db.ref('votos/' + opcion);
+      votoRef.transaction(current => (current || 0) + 1);
 
-    function mostrarResultados(){
-        document.getElementById("resultado").style.display = "block";
-        document.getElementById("votosA").innerText = `SQL Server: ${votos.A} votos`;
-        document.getElementById("votosB").innerText = `PostgreSQL: ${votos.B} votos`;
+      // Marcar que ya votó
+      localStorage.setItem('yaVoto','1');
+  }
 
-        let ganador;
-        if(votos.A > votos.B) ganador = "¡SQL Server gana!";
-        else if(votos.B > votos.A) ganador = "¡PostgreSQL gana!";
-        else ganador = "¡Empate!";
+  // ======= MOSTRAR RESULTADOS =======
+  function mostrarResultados(){
+      document.getElementById("resultado").style.display = "block";
+  }
 
-        document.getElementById("ganador").innerText = ganador;
-    }
+  // ======= ESCUCHAR CAMBIOS EN TIEMPO REAL =======
+  db.ref('votos').on('value', snapshot => {
+      votos = snapshot.val() || {A:0, B:0};
+      mostrarResultados();
+      document.getElementById("votosA").innerText = `SQL Server: ${votos.A || 0} votos`;
+      document.getElementById("votosB").innerText = `PostgreSQL: ${votos.B || 0} votos`;
 
-    // Actualizar resultados cada 3 segundos en tiempo real
-    setInterval(() => {
-        votos = JSON.parse(localStorage.getItem('votos')) || {A:0, B:0};
-        mostrarResultados();
-    }, 30000);
+      let ganador;
+      if((votos.A || 0) > (votos.B || 0)) ganador = "¡SQL Server gana!";
+      else if((votos.B || 0) > (votos.A || 0)) ganador = "¡PostgreSQL gana!";
+      else ganador = "¡Empate!";
+      document.getElementById("ganador").innerText = ganador;
+  });
 </script>
 
 </body>
