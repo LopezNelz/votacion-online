@@ -13,7 +13,7 @@
     },
     {
         "categoria": "Etapa 3 - Gerente solicíta modificar saldos",
-        "pregunta": "¿Cómo deberias otorgarle los permisos?",
+        "pregunta": "¿Qué permisos debería darle Brayan (DBA) al Gerente?",
         "incorrecta1": "Dar permisos directos (GRANT) al usuario individual",
         "respuesta": "Crear Rol_Gerente"
     },
