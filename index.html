@@ -386,11 +386,11 @@
 
         <!-- Pantalla de Resultados Finales -->
         <div id="pantalla-resultados-finales" class="pantalla">
-            <h1>🎉 Quiz Completado</h1>
+            <h1>Completado</h1>
             
             <div class="mensaje-final">
-                <strong>¡Gracias por realizar el quiz!</strong><br>
-                Esperamos que hayas aprendido más sobre seguridad en bases de datos.
+                <strong>¡Gracias por realizar el Test!</strong><br>
+                Esperamos que hayas aprendido más sobre Seguridad en BD
             </div>
             
             <div class="resultados-container">
@@ -608,13 +608,13 @@
             if (esCorrecta) {
                 resultadoUsuario.className = 'respuesta-correcta';
                 resultadoUsuario.innerHTML = `
-                    ✅ <strong>¡Correcto!</strong><br>
+                    <strong>¡Correcto!</strong><br>
                     Tu respuesta: "${opcionSeleccionada === 'A' ? pregunta.opcionA : pregunta.opcionB}"
                 `;
             } else {
                 resultadoUsuario.className = 'respuesta-incorrecta';
                 resultadoUsuario.innerHTML = `
-                    ❌ <strong>Incorrecto</strong><br>
+                    <strong>Incorrecto</strong><br>
                     Tu respuesta: "${opcionSeleccionada === 'A' ? pregunta.opcionA : pregunta.opcionB}"<br>
                     Respuesta correcta: "${pregunta.textoCorrecto}"
                 `;
@@ -712,4 +712,5 @@
     </script>
 </body>
 </html>
+
 
